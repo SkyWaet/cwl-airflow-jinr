@@ -1,13 +1,13 @@
 #!/bin/bash
 
 echo "Set parameters from the environment variables or apply defaults"
-: ${MYSQL_USER:=airflow}
-: ${MYSQL_PASSWORD:=airflow}
-: ${MYSQL_DATABASE:=airflow}
+: ${POSTGRES_USER:=airflow}
+: ${POSTGRES_PASSWORD:=airflow}
+: ${POSTGRES_DATABASE:=airflow}
 : ${PROCESS_REPORT_URL:=""}
 
 echo "Wait until required database is ready"
-until mysql -h mysql -u ${MYSQL_USER} -p${MYSQL_PASSWORD} -e "USE ${MYSQL_DATABASE}"
+until PGPASSWORD=${POSTGRES_PASSWORD} psql --host=postgres --dbname=${POSTGRES_DATABASE} --username=${POSTGRES_USER}  -c "select * from dag_run"
 do
     echo "Sleep 1 sec"
     sleep 1;

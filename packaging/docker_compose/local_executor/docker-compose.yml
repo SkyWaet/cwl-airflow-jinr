@@ -7,7 +7,7 @@ x-aliases:  # if it starts with x- it's ignored by docker-compose
             - AIRFLOW_HOME=${AIRFLOW_HOME}
             - PROCESS_REPORT_URL=${PROCESS_REPORT_URL}
             - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:3306/${POSTGRES_DATABASE}
             - AIRFLOW__CORE__DAGS_FOLDER=${AIRFLOW_HOME}/dags
             - AIRFLOW__CORE__BASE_LOG_FOLDER=${AIRFLOW_HOME}/logs
             - AIRFLOW__CORE__DAG_PROCESSOR_MANAGER_LOG_LOCATION=${AIRFLOW_HOME}/logs/dag_processor_manager/dag_processor_manager.log
@@ -27,7 +27,7 @@ x-aliases:  # if it starts with x- it's ignored by docker-compose
 
 services:
 
-    # starts after mysql was launched, then waits until airflow gets access to the database,
+    # starts after postgres was launched, then waits until airflow gets access to the database,
     # then runs cwl-airflow init creating all required tables in the database and starts scheduler
     scheduler:
         build:
@@ -51,7 +51,7 @@ services:
         <<: *airflow_env_file
         command: start_scheduler.sh
         depends_on:
-            - mysql
+            - postgres
 
     # starts after scheduler was launched, then waits untill all required for airflow tables have been
     # created (we just check dag_run table) and starts webserver
@@ -96,19 +96,17 @@ services:
         depends_on:
             - scheduler  # need to start only after cwl-airflow init was run
 
-    # starts MySQL server, creates empty ${MYSQL_DATABASE} with ${MYSQL_USER} and ${MYSQL_PASSWORD}
-    mysql:
-        image: mysql:5.7
-        container_name: mysql
+    postgres:
+        image: postgres:13
+        container_name: postgres
         ports:
-            - ${MYSQL_PORT}:3306
+            - ${POSTGRES_PORT}:3306
         volumes:
-            - ${MYSQL_DATA}:/var/lib/mysql
+            - ${POSTGRES_DATA}:/var/lib/postgres
             - /dev/urandom:/dev/random  # Not sure if I need it at all
         restart: always
         environment:
-            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-            - MYSQL_DATABASE=${MYSQL_DATABASE}
-            - MYSQL_USER=${MYSQL_USER}
-            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-        command: --explicit-defaults-for-timestamp=1
+            - POSTGRES_ROOT_PASSWORD=${POSTGRES_ROOT_PASSWORD}
+            - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

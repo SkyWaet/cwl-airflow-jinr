@@ -42,7 +42,7 @@ RUN echo "Installing dependencies" && \
     apt-get install -y gcc build-essential \
                        git wget curl zlib1g-dev libmysqlclient-dev libffi-dev libssl-dev \
                        ca-certificates \
-                       nodejs mysql-client apt-transport-https libsqlite3-dev \
+                       nodejs postgresql apt-transport-https libsqlite3-dev \
                        gnupg-agent software-properties-common && \
     echo "Installing Python" && \
     wget ${PYTHON_URL} && \
